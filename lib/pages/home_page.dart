@@ -1,132 +1,132 @@
-// lib/pages/home_page.dart
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-class Place {
-  final int id;
-  final String name;
-  final String imageUrl;
-  final double rating;
-
-  Place({required this.id, required this.name, required this.imageUrl, required this.rating});
-
-  factory Place.fromJson(Map<String, dynamic> json) {
-    return Place(
-      id: json['id'],
-      name: json['name'],
-      imageUrl: json['imageUrl'],
-      rating: json['rating'].toDouble(),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
 
-class _HomePageState extends State<HomePage> {
-  late Future<List<Place>> futurePlaces;
-
-  @override
-  void initState() {
-    super.initState();
-    futurePlaces = fetchPlaces();
-  }
-
-  Future<List<Place>> fetchPlaces() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/api/places'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((place) => Place.fromJson(place)).toList();
-    } else {
-      throw Exception('Failed to load places');
-    }
-  }
+  final List<Map<String, dynamic>> dummyPlaces = const [
+    {
+      'name': 'Hoi An',
+      'image':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Hoi_An_Ancient_Town%2C_Vietnam.jpg/640px-Hoi_An_Ancient_Town%2C_Vietnam.jpg',
+      'rating': 4.5,
+    },
+    {
+      'name': 'Saigon',
+      'image':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Saigon_Skyline_2022.jpg/640px-Saigon_Skyline_2022.jpg',
+      'rating': 4.6,
+    },
+    {
+      'name': 'Hanoi',
+      'image':
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Hanoi_Opera_House.jpg/640px-Hanoi_Opera_House.jpg',
+      'rating': 4.4,
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
-        BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'LIKE'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'USER'),
-      ]),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Hi Guy!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const Text('Where are you going next?'),
-              const SizedBox(height: 12),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search your destination',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Hi Guy!'),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Where are you going next?",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Search your destination',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: const [
-                  Chip(label: Text('Hotels')),
-                  Chip(label: Text('Flights')),
-                  Chip(label: Text('All')),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text('Popular Destinations', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              Expanded(
-                child: FutureBuilder<List<Place>>(
-                  future: futurePlaces,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No places found.'));
-                    }
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Popular Destinations",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: dummyPlaces.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final place = dummyPlaces[index];
 
-                    return ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: snapshot.data!.map((place) {
-                        return Container(
-                          margin: const EdgeInsets.only(right: 16),
-                          width: 160,
-                          child: Column(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(place.imageUrl, height: 100, width: 160, fit: BoxFit.cover),
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          place['image'] ?? '',
+                          width: 150,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 150,
+                              height: 200,
+                              color: Colors.grey,
+                              child: const Center(
+                                child: Icon(Icons.error, color: Colors.red),
                               ),
-                              const SizedBox(height: 6),
-                              Text(place.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.star, color: Colors.orange, size: 16),
-                                  Text(place.rating.toString()),
-                                ],
-                              ),
-                            ],
+                            );
+                          },
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            color: Colors.black54,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  place['name'] ?? 'Unknown',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  "⭐ ${place['rating'] ?? 'N/A'}",
+                                  style:
+                                  const TextStyle(color: Colors.white70),
+                                ),
+                              ],
+                            ),
                           ),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            )
+          ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.favorite), label: 'Favorites'),
+        ],
       ),
     );
   }
